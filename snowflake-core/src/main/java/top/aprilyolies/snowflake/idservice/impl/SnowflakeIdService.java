@@ -1,10 +1,12 @@
-package top.aprilyolies.snowflake.idservice;
+package top.aprilyolies.snowflake.idservice.impl;
 
 /**
  * @Author EvaJohnson
  * @Date 2019-07-11
  * @Email g863821569@gmail.com
  */
+
+import top.aprilyolies.snowflake.idservice.IdService;
 
 /**
  * 通过 snowflake 算法生成唯一 id 的服务

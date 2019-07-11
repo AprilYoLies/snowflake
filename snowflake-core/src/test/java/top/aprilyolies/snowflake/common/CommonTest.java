@@ -1,6 +1,7 @@
 package top.aprilyolies.snowflake.common;
 
 import org.junit.Test;
+import top.aprilyolies.snowflake.idservice.support.IdModle;
 
 /**
  * @Author EvaJohnson
@@ -16,5 +17,16 @@ public class CommonTest {
             count++;
         }
         System.out.println(count);
+    }
+
+    @Test
+    public void testIdModel() {
+        System.out.println(IdModle.parseModel(0));
+        System.out.println(IdModle.parseModel(1));
+        try {
+            System.out.println(IdModle.parseModel(2));
+        } catch (Exception e) {
+            System.out.println("Parse failed");
+        }
     }
 }
