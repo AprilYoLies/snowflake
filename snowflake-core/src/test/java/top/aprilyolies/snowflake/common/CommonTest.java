@@ -1,7 +1,7 @@
 package top.aprilyolies.snowflake.common;
 
 import org.junit.Test;
-import top.aprilyolies.snowflake.idservice.support.IdModle;
+import top.aprilyolies.snowflake.idservice.support.IdModel;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
@@ -23,10 +23,10 @@ public class CommonTest {
 
     @Test
     public void testIdModel() {
-        System.out.println(IdModle.parseModel(0));
-        System.out.println(IdModle.parseModel(1));
+        System.out.println(IdModel.parseModel(0));
+        System.out.println(IdModel.parseModel(1));
         try {
-            System.out.println(IdModle.parseModel(2));
+            System.out.println(IdModel.parseModel(2));
         } catch (Exception e) {
             System.out.println("Parse failed");
         }
@@ -50,6 +50,18 @@ public class CommonTest {
         String sid2 = builder2.buildId();
 
         System.out.println(sid1 + " : " + sid2);
+    }
+
+    @Test
+    public void testGetCurrentTime() {
+        System.out.println(System.currentTimeMillis());
+    }
+
+    @Test
+    public void testGetMaxTime() {
+        IdModel model = IdModel.parseModel(0);
+        long maxTimes = (1 << (model.getTypePos() - model.getTimePos())) - 1;
+        System.out.println(maxTimes);
     }
 
 }

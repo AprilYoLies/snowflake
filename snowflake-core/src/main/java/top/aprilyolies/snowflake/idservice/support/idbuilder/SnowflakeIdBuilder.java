@@ -1,6 +1,6 @@
 package top.aprilyolies.snowflake.idservice.support.idbuilder;
 
-import top.aprilyolies.snowflake.idservice.support.IdModle;
+import top.aprilyolies.snowflake.idservice.support.IdModel;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 
 /**
@@ -27,8 +27,8 @@ public class SnowflakeIdBuilder implements IdBuilder {
 
     @Override
     public String buildId() {
-        // 获取 IdModle
-        IdModle model = IdModle.parseModel(idType);
+        // 获取 IdModel
+        IdModel model = IdModel.parseModel(idType);
         // 拿到 machine id
         int machineId = machineIdProvider.buildMachineId();
         long id = 0;

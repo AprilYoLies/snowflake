@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath:snowflake.properties"/>
+    </bean>
+
+    <bean id="idService" class="top.aprilyolies.snowflake.idservice.IdServiceFactory">
+        <property name="serviceType" value="${snowflake.service.type}"/>
+        <property name="idType" value="${snowflake.id.type}"/>
+        <property name="machineIdProvider" value="${snowflake.machine.id.provider}"/>
+    </bean>
+</beans>

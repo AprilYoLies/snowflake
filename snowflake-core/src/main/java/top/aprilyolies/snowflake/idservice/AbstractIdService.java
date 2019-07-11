@@ -1,5 +1,6 @@
 package top.aprilyolies.snowflake.idservice;
 
+import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 
 /**
@@ -10,6 +11,10 @@ import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 public abstract class AbstractIdService implements IdService {
     // 用于提供 machine id
     protected MachineIdProvider machineIdProvider;
+    // 时间戳生成器
+    protected TimeSupport timeSupport;
 
-
+    public AbstractIdService(MachineIdProvider machineIdProvider) {
+        this.machineIdProvider = machineIdProvider;
+    }
 }

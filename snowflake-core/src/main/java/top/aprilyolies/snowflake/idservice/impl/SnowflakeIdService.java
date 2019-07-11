@@ -7,7 +7,9 @@ package top.aprilyolies.snowflake.idservice.impl;
  */
 
 import top.aprilyolies.snowflake.idservice.AbstractIdService;
+import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
+import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 
 /**
  * 通过 snowflake 算法生成唯一 id 的服务
@@ -23,15 +25,20 @@ import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
  */
 public class SnowflakeIdService extends AbstractIdService {
     // id 的类型（最大峰值型或最小粒度型）
-    private int idType;
-    // 时间戳
-    private long timeStamp;
+    private long idType;
     // 序列号
     private int serial;
 
+    public SnowflakeIdService(long idType, MachineIdProvider machineIdProvider) {
+        super(machineIdProvider);
+        this.idType = idType;
+        this.timeSupport = new TimeSupport(idType);
+    }
+
     @Override
     public String generateId() {
+        long timeStamp = timeSupport.getTime();
         SnowflakeIdBuilder builder = new SnowflakeIdBuilder(idType, timeStamp, serial, machineIdProvider);
-        return null;
+        return builder.buildId();
     }
 }
