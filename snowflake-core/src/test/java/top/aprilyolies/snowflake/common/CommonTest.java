@@ -2,6 +2,7 @@ package top.aprilyolies.snowflake.common;
 
 import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.support.IdModle;
+import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
 /**
  * @Author EvaJohnson
@@ -29,4 +30,12 @@ public class CommonTest {
             System.out.println("Parse failed");
         }
     }
+
+    @Test
+    public void testPropertyMachineIdProvider() {
+        PropertyMachineIdProvider provider = new PropertyMachineIdProvider();
+        int id = provider.buildMachineId();
+        System.out.println(id);
+    }
+
 }
