@@ -16,7 +16,7 @@ public abstract class AbstractMachineIdProvider implements MachineIdProvider {
         if (id >= 0 && id <= 1023) {
             return id;
         } else {
-            throw new IllegalArgumentException("Machine id should between 0 to 1023");
+            throw new IllegalArgumentException("Machine id should between 0 and 1023");
         }
     }
 }

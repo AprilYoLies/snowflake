@@ -43,46 +43,22 @@ public class IdModle {
      * @param type 生成 id 的类型，0 代表最大峰值型，1 代表最小颗粒度型
      * @return 对应 id 的模型
      */
-    public static IdModle parseModel(int type) {
+    public static IdModle parseModel(long type) {
         if (type == 0) {
-            return new IdModle(63, 31, 9, 0);
+            return new IdModle(63, 32, 10, 0);
         } else if (type == 1) {
-            return new IdModle(63, 21, 9, 0);
+            return new IdModle(63, 22, 10, 0);
         } else {
             throw new IllegalArgumentException("Can't parse id model for type " + type + " , please use 0 for maximum peak type or 1 for minimum granularity");
         }
-    }
-
-    public int getTypePos() {
-        return typePos;
-    }
-
-    public void setTypePos(int typePos) {
-        this.typePos = typePos;
     }
 
     public int getTimePos() {
         return timePos;
     }
 
-    public void setTimePos(int timePos) {
-        this.timePos = timePos;
-    }
-
     public int getSerialPos() {
         return serialPos;
-    }
-
-    public void setSerialPos(int serialPos) {
-        this.serialPos = serialPos;
-    }
-
-    public int getMachinePos() {
-        return machinePos;
-    }
-
-    public void setMachinePos(int machinePos) {
-        this.machinePos = machinePos;
     }
 
     @Override

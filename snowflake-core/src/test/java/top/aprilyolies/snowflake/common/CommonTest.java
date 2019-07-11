@@ -2,6 +2,7 @@ package top.aprilyolies.snowflake.common;
 
 import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.support.IdModle;
+import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
 /**
@@ -36,6 +37,19 @@ public class CommonTest {
         PropertyMachineIdProvider provider = new PropertyMachineIdProvider();
         int id = provider.buildMachineId();
         System.out.println(id);
+    }
+
+    @Test
+    public void testSnowflakeIdBuilder() {
+        PropertyMachineIdProvider provider = new PropertyMachineIdProvider();
+
+        SnowflakeIdBuilder builder1 = new SnowflakeIdBuilder(0, 1562841139L, 2097152, provider);
+        String sid1 = builder1.buildId();
+
+        SnowflakeIdBuilder builder2 = new SnowflakeIdBuilder(1, 1562841139707L, 2097152, provider);
+        String sid2 = builder2.buildId();
+
+        System.out.println(sid1 + " : " + sid2);
     }
 
 }

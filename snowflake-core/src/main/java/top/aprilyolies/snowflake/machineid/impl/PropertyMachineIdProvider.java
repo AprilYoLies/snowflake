@@ -25,7 +25,7 @@ public class PropertyMachineIdProvider extends AbstractMachineIdProvider {
         } catch (NumberFormatException e) {
             throw new IllegalStateException("Can't build machine id, please check the snowflake config file is existed, default is " +
                     "snowflake.properties, and make sure that machine id has specified via snowflake.machine.id=xxx, xxx is a number " +
-                    "between 0 to 1023 and different from other machine");
+                    "between 0 and 1023 and different from other machine");
         }
     }
 }
