@@ -18,6 +18,9 @@ package top.aprilyolies.snowflake.idservice.support;
  * 生成id的模式     -    时间戳    -    序列号     -      机器id
  */
 public class IdModel {
+    // 序列号掩码
+    private final long serialMask;
+
     // type 字段在 id 数据结构中的起始位置
     private int typePos;
 
@@ -35,6 +38,7 @@ public class IdModel {
         this.timePos = timePos;
         this.serialPos = serialPos;
         this.machinePos = machinePos;
+        this.serialMask = ~(-1L << (timePos - serialPos));
     }
 
     /**
@@ -83,6 +87,10 @@ public class IdModel {
 
     public void setMachinePos(int machinePos) {
         this.machinePos = machinePos;
+    }
+
+    public long getSerialMask() {
+        return serialMask;
     }
 
     @Override

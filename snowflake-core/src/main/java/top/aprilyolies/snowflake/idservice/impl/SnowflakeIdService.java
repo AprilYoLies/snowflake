@@ -26,8 +26,6 @@ import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 public class SnowflakeIdService extends AbstractIdService {
     // id 的类型（最大峰值型或最小粒度型）
     private long idType;
-    // 序列号
-    private int serial;
 
     public SnowflakeIdService(long idType, MachineIdProvider machineIdProvider) {
         super(machineIdProvider);
@@ -37,8 +35,7 @@ public class SnowflakeIdService extends AbstractIdService {
 
     @Override
     public String generateId() {
-        long timeStamp = timeSupport.getTime();
-        SnowflakeIdBuilder builder = new SnowflakeIdBuilder(idType, timeStamp, serial, machineIdProvider);
+        SnowflakeIdBuilder builder = new SnowflakeIdBuilder(idType, timeSupport, machineIdProvider);
         return builder.buildId();
     }
 }

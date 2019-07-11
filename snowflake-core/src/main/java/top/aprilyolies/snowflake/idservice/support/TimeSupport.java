@@ -16,6 +16,8 @@ public class TimeSupport {
     private final IdModel model;
     // 秒级 id 的时间戳最大值
     private final long maxTimes;
+    // 上一个获取的时刻
+    private long lastTime;
 
     public TimeSupport(long idType) {
         this.idType = idType;
@@ -25,22 +27,40 @@ public class TimeSupport {
 
     // 根据 id 的类型获取时间戳
     public long getTime() {
-        long curSeconds;
+        long curTime;
         if (idType == 0) {
-            curSeconds = System.currentTimeMillis() / 1000;
-            checkTime(curSeconds);
-            return curSeconds - SECONDS_EPOCH;
+            curTime = System.currentTimeMillis() / 1000;
+            checkTime(curTime);
+            return curTime - SECONDS_EPOCH;
         } else {
-            curSeconds = System.currentTimeMillis();
-            checkTime(curSeconds);
-            return curSeconds - MILLISECONDS_EPOCH;
+            curTime = System.currentTimeMillis();
+            checkTime(curTime);
+            return curTime - MILLISECONDS_EPOCH;
         }
     }
 
     // 检查当前时间是否已经超过了 maxTimes
     private void checkTime(long curSeconds) {
-        if (curSeconds < maxTimes) {
+        if (curSeconds > maxTimes) {
             throw new IllegalStateException("Current time is greater than maxTimes");
         }
+    }
+
+    // 线程自旋到下一个最小时间单元
+    public long waitUntilNextTimeUnit() {
+        long curTime = getTime();
+        while (curTime == lastTime) {
+            curTime = getTime();
+        }
+        checkTime(curTime);
+        return curTime;
+    }
+
+    public long getLastTime() {
+        return lastTime;
+    }
+
+    public void setLastTime(long lastTime) {
+        this.lastTime = lastTime;
     }
 }
