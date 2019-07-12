@@ -3,6 +3,7 @@ package top.aprilyolies.snowflake.idservice;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.StringUtils;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
+import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.ZookeeperMachineIdProvider;
@@ -18,17 +19,17 @@ public class IdServiceFactory implements FactoryBean {
     // id 的类型
     private String idType;
     // machine id 的生成器
-    private String machineIdProvider;
+    private MachineIdProviderType machineIdProvider;
     // zookeeper 的地址
     private String zkHost;
+    // 数据库用户名
+    private String username;
+    // 数据库密码
+    private String passwd;
     // 采用 snowflake 算法生成 id 的服务
     private static final String SNOWFLAKE_SERVICE = "snowflake";
     // 采用分段的方式生成 id 的服务
     private static final String SEGMENT_SERVICE = "segment";
-    // machine id 生成方式采用 property 配置
-    private static final String PROPERTY_MACHINE_ID_PROVIDER = "property";
-    // machine id 生成方式采用 zookeeper 配置
-    private static final String ZOOKEEPER_MACHINE_ID_PROVIDER = "zookeeper";
 
     @Override
     public Object getObject() throws Exception {
@@ -39,8 +40,10 @@ public class IdServiceFactory implements FactoryBean {
             long idType = Long.parseLong(this.idType);
             if (SNOWFLAKE_SERVICE.equals(serviceType)) {
                 return new SnowflakeIdService(idType, machineIdProvider);
-            } else {
+            } else if (SEGMENT_SERVICE.equals(serviceType)) {
                 return null;
+            } else {
+                throw new IllegalStateException("Unsupported service type");
             }
         }
     }
@@ -51,13 +54,13 @@ public class IdServiceFactory implements FactoryBean {
      * @param machineIdProvider 字符串类型的 machineIdProvider
      * @return 匹配出来的 MachineIdProvider 实例
      */
-    private MachineIdProvider parseIdProvider(String machineIdProvider) {
+    private MachineIdProvider parseIdProvider(MachineIdProviderType machineIdProvider) {
         if (StringUtils.isEmpty(machineIdProvider))
             throw new IllegalArgumentException("Machine id type should not be null");
         switch (machineIdProvider) {
-            case PROPERTY_MACHINE_ID_PROVIDER:
+            case PROPERTY:
                 return new PropertyMachineIdProvider();
-            case ZOOKEEPER_MACHINE_ID_PROVIDER:
+            case ZOOKEEPER:
                 ZookeeperMachineIdProvider provider = new ZookeeperMachineIdProvider(this.zkHost);
                 provider.init();
                 return provider;
@@ -84,7 +87,7 @@ public class IdServiceFactory implements FactoryBean {
         this.idType = idType;
     }
 
-    public void setMachineIdProvider(String machineIdProvider) {
+    public void setMachineIdProvider(MachineIdProviderType machineIdProvider) {
         this.machineIdProvider = machineIdProvider;
     }
 
@@ -94,5 +97,21 @@ public class IdServiceFactory implements FactoryBean {
 
     public void setZkHost(String zkHost) {
         this.zkHost = zkHost;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPasswd() {
+        return passwd;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 }

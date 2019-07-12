@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.IdService;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
+import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -20,8 +21,10 @@ public class SnowflakeIdServiceTest {
         factory = new IdServiceFactory();
         factory.setIdType("0");
         factory.setServiceType("snowflake");
-        factory.setMachineIdProvider("zookeeper");
+        factory.setMachineIdProvider(MachineIdProviderType.MYSQL);
         factory.setZkHost("119.23.247.86");
+        factory.setUsername("root");
+        factory.setPasswd("kuaile1..");
     }
 
     @Test
@@ -35,6 +38,7 @@ public class SnowflakeIdServiceTest {
     public void testMultiThreadSnowflakeUseProperty() throws Exception {
         IdService service = (IdService) factory.getObject();
         CountDownLatch latch = new CountDownLatch(10);
+        long start = System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             new Thread(() -> {
                 try {
@@ -48,5 +52,6 @@ public class SnowflakeIdServiceTest {
             }).start();
         }
         latch.await();
+        System.out.println(System.currentTimeMillis() - start);
     }
 }
