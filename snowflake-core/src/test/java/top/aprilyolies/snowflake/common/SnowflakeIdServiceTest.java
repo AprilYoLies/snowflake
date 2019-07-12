@@ -18,7 +18,7 @@ public class SnowflakeIdServiceTest {
     @Before
     public void initFactory() {
         factory = new IdServiceFactory();
-        factory.setIdType("1");
+        factory.setIdType("0");
         factory.setServiceType("snowflake");
         factory.setMachineIdProvider("zookeeper");
         factory.setZkHost("119.23.247.86");
