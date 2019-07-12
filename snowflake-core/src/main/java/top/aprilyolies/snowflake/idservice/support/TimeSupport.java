@@ -22,7 +22,7 @@ public class TimeSupport {
     public TimeSupport(long idType) {
         this.idType = idType;
         this.model = IdModel.parseModel(idType);
-        this.maxTimes = (1 << (model.getTypePos() - model.getTimePos())) - 1;
+        this.maxTimes = (1L << (model.getTypePos() - model.getTimePos())) - 1;
     }
 
     // 根据 id 的类型获取时间戳
