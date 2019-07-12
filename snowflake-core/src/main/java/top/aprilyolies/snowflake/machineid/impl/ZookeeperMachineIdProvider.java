@@ -1,5 +1,6 @@
 package top.aprilyolies.snowflake.machineid.impl;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryUntilElapsed;
@@ -8,6 +9,8 @@ import org.apache.zookeeper.data.Stat;
 import org.springframework.util.StringUtils;
 import top.aprilyolies.snowflake.machineid.AbstractMachineIdProvider;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -26,9 +29,11 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
     private final String host;
     // zk 客户端
     private CuratorFramework zkClient;
-
+    // 本地用于存放 machine id 的文件
+    private static final String LOCAL_MACHINE_ID_FILE = System.getProperty("java.io.tmpdir") + "machine_id";
+    // 用于注册到 zookeeper 的标识信息
     private String ipAddress;
-
+    // 注册中心注册 ip 和 machine 信息的路径
     private static final String SNOWFLAKE_ZOOKEEPER_PARENT_PATH = "/snowflake/machine-ids";
     // machine id
     private int machineId = -1;
@@ -51,21 +56,54 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
                 Map<String, String> ipIds = new HashMap<>();
                 for (String machine : machines) {   // 获取已经在 zookeeper 上注册的 ip 和 machine id 信息
                     if (machine.contains("-")) {
-                        String[] strs = machine.split("-");
-                        if (strs.length > 1) {
-                            ipIds.putIfAbsent(strs[0], strs[1]);
+                        String[] ipIdsArr = machine.split("-");
+                        if (ipIdsArr.length > 1) {
+                            ipIds.putIfAbsent(ipIdsArr[0], ipIdsArr[1]);
                         }
                     }
                 }
                 if (ipIds.containsKey(ipAddress)) {
-                    machineId = Integer.parseInt(ipIds.get(host));
+                    machineId = Integer.parseInt(ipIds.get(ipAddress));
                 } else {
                     getMachineId();
                 }
+            }   // 将 machine id 缓存到 machine id file 中，或者是更新其中的内容
+            if (storeOrUpdateMachineId(machineId)) {
+                logger.info("Store machine id in {} successfully", LOCAL_MACHINE_ID_FILE);
+            } else {
+                logger.warn("Can't store machine id info in {}", LOCAL_MACHINE_ID_FILE);
             }
         } catch (Exception e) {
             logger.info("Can't get machine id from zookeeper, and snowflake will try to fetch machine id from local file, if still can't," +
                     "snowflake will exit with an exception thrown");
+        }
+    }
+
+    // 将 machine id 缓存到 machine id file 中，或者是更新其中的内容
+    private boolean storeOrUpdateMachineId(int machineId) {
+        try {
+            File file = new File(LOCAL_MACHINE_ID_FILE);
+            if (file.exists()) {    // 如果缓存文件存在，就直接更新其中的内容
+                logger.info("The machine id cache file in {} is existed, try to update the machine id cache file content", LOCAL_MACHINE_ID_FILE);
+                FileUtils.write(file, String.valueOf(machineId), false);
+            } else {
+                logger.info("The machine id cache file in {} is not existed, try to create a new file and store the machine id", LOCAL_MACHINE_ID_FILE);
+                boolean mkdir = file.getParentFile().mkdirs();   // 否则先创建父文件夹
+                if (mkdir) {
+                    logger.info("Create parent path {} successfully", LOCAL_MACHINE_ID_FILE.substring(0, LOCAL_MACHINE_ID_FILE.lastIndexOf(File.separator)));
+                    FileUtils.writeStringToFile(file, String.valueOf(machineId), false);    // 创建文件成功，将 machine id 信息写入其中
+                } else {
+                    logger.info("Create parent path {} failed", LOCAL_MACHINE_ID_FILE.substring(0, LOCAL_MACHINE_ID_FILE.lastIndexOf(File.separator)));
+                    if (file.getParentFile().exists()) {
+                        FileUtils.writeStringToFile(file, String.valueOf(machineId), false);    // 创建文件成功，将 machine id 信息写入其中
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 
@@ -97,7 +135,7 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
 
     @Override
     public int buildMachineId() {
-        return 0;
+        return machineId;
     }
 
     // 获取本地的 ip 地址，优先获取第一个可用的 ip 地址

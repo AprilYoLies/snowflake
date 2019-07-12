@@ -13,7 +13,7 @@ import java.util.concurrent.CountDownLatch;
  * @Email g863821569@gmail.com
  */
 public class SnowflakeIdServiceTest {
-    IdServiceFactory factory;
+    private IdServiceFactory factory;
 
     @Before
     public void initFactory() {
