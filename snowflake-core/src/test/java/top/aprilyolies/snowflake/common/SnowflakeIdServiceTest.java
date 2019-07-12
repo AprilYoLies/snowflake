@@ -24,7 +24,7 @@ public class SnowflakeIdServiceTest {
         factory.setMachineIdProvider(MachineIdProviderType.MYSQL);
         factory.setZkHost("119.23.247.86");
         factory.setUsername("root");
-        factory.setPasswd("kuaile1..");
+        factory.setPassword("kuaile1..");
     }
 
     @Test

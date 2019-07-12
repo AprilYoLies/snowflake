@@ -28,4 +28,9 @@ public class PropertyMachineIdProvider extends AbstractMachineIdProvider {
                     "between 0 and 1023 and different from other machine");
         }
     }
+
+    @Override
+    public void init() {
+        // empty
+    }
 }

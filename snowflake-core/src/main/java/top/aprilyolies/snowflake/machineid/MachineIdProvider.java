@@ -12,4 +12,7 @@ package top.aprilyolies.snowflake.machineid;
 public interface MachineIdProvider {
     // 生成 machine id
     int buildMachineId();
+
+    // 初始化 machine id provider
+    void init();
 }

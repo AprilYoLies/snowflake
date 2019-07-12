@@ -12,6 +12,8 @@
         <property name="idType" value="${snowflake.id.type}"/>
         <property name="machineIdProvider" value="${snowflake.machine.id.provider}"/>
         <property name="zkHost" value="${snowflake.zookeeper.host}"/>
-        <property name="zkPort" value="${snowflake.zookeeper.port}"/>
+        <property name="dbUrl" value="${snowflake.database.url}"/>
+        <property name="username" value="${snowflake.database.username}"/>
+        <property name="password" value="${snowflake.database.password}"/>
     </bean>
 </beans>
