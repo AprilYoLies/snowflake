@@ -18,7 +18,7 @@ public class IdServiceFactoryTest {
     @Before
     public void initFactory() {
         factory = new IdServiceFactory();
-        factory.setIdType("0");
+        factory.setIdType("1");
         factory.setServiceType("snowflake");
         factory.setMachineIdProvider("property");
     }
@@ -39,6 +39,7 @@ public class IdServiceFactoryTest {
                 try {
                     for (int j = 0; j < 1000; j++) {
                         String id = service.generateId();
+                        System.out.println(id);
                     }
                 } finally {
                     latch.countDown();

@@ -48,7 +48,6 @@ public class SnowflakeIdBuilder implements IdBuilder {
         id |= (curTime << model.getTimePos());
         id |= (serial << model.getSerialPos());
         id |= machineId;
-        System.out.println(Long.toBinaryString(id));
         return String.valueOf(id);
     }
 }
