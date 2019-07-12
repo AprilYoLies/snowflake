@@ -78,4 +78,9 @@ public class CommonTest {
         System.out.println((1L << (41)) - 1);
     }
 
+    @Test
+    public void testGetTempFolder() {
+        String property = System.getProperty("java.io.tmpdir");
+        System.out.println(property);
+    }
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
  * @Date 2019-07-11
  * @Email g863821569@gmail.com
  */
-public class IdServiceFactoryTest {
+public class SnowflakeIdServiceTest {
     IdServiceFactory factory;
 
     @Before
@@ -20,7 +20,8 @@ public class IdServiceFactoryTest {
         factory = new IdServiceFactory();
         factory.setIdType("1");
         factory.setServiceType("snowflake");
-        factory.setMachineIdProvider("property");
+        factory.setMachineIdProvider("zookeeper");
+        factory.setZkHost("119.23.247.86");
     }
 
     @Test

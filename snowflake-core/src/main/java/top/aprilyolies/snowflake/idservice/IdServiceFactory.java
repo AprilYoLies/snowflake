@@ -5,6 +5,7 @@ import org.springframework.util.StringUtils;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
+import top.aprilyolies.snowflake.machineid.impl.ZookeeperMachineIdProvider;
 
 /**
  * @Author EvaJohnson
@@ -18,12 +19,16 @@ public class IdServiceFactory implements FactoryBean {
     private String idType;
     // machine id 的生成器
     private String machineIdProvider;
+    // zookeeper 的地址
+    private String zkHost;
     // 采用 snowflake 算法生成 id 的服务
-    private final String SNOWFLAKE_SERVICE = "snowflake";
+    private static final String SNOWFLAKE_SERVICE = "snowflake";
     // 采用分段的方式生成 id 的服务
-    private final String SEGMENT_SERVICE = "segment";
-
-    private final String PROPERTY_MACHINE_ID_PROVIDER = "property";
+    private static final String SEGMENT_SERVICE = "segment";
+    // machine id 生成方式采用 property 配置
+    private static final String PROPERTY_MACHINE_ID_PROVIDER = "property";
+    // machine id 生成方式采用 zookeeper 配置
+    private static final String ZOOKEEPER_MACHINE_ID_PROVIDER = "zookeeper";
 
     @Override
     public Object getObject() throws Exception {
@@ -52,6 +57,10 @@ public class IdServiceFactory implements FactoryBean {
         switch (machineIdProvider) {
             case PROPERTY_MACHINE_ID_PROVIDER:
                 return new PropertyMachineIdProvider();
+            case ZOOKEEPER_MACHINE_ID_PROVIDER:
+                ZookeeperMachineIdProvider provider = new ZookeeperMachineIdProvider(this.zkHost);
+                provider.init();
+                return provider;
             default:
                 throw new IllegalArgumentException("None of machine id provider could be found");
         }
@@ -77,5 +86,13 @@ public class IdServiceFactory implements FactoryBean {
 
     public void setMachineIdProvider(String machineIdProvider) {
         this.machineIdProvider = machineIdProvider;
+    }
+
+    public String getZkHost() {
+        return zkHost;
+    }
+
+    public void setZkHost(String zkHost) {
+        this.zkHost = zkHost;
     }
 }

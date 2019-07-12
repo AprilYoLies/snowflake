@@ -11,5 +11,7 @@
         <property name="serviceType" value="${snowflake.service.type}"/>
         <property name="idType" value="${snowflake.id.type}"/>
         <property name="machineIdProvider" value="${snowflake.machine.id.provider}"/>
+        <property name="zkHost" value="${snowflake.zookeeper.host}"/>
+        <property name="zkPort" value="${snowflake.zookeeper.port}"/>
     </bean>
 </beans>
