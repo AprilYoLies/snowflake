@@ -5,6 +5,8 @@ import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.IdService;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * @Author EvaJohnson
  * @Date 2019-07-11
@@ -26,5 +28,23 @@ public class IdServiceFactoryTest {
         IdService service = (IdService) factory.getObject();
         String id = service.generateId();
         System.out.println(id);
+    }
+
+    @Test
+    public void testMultiThreadSnowflakeUseProperty() throws Exception {
+        IdService service = (IdService) factory.getObject();
+        CountDownLatch latch = new CountDownLatch(10);
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                try {
+                    for (int j = 0; j < 1000; j++) {
+                        String id = service.generateId();
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+        latch.await();
     }
 }

@@ -21,8 +21,6 @@ public class SnowflakeIdBuilder implements IdBuilder {
     // id 的数据结构模型
     private IdModel model;
 
-    private long lastTime = -1;
-
     public SnowflakeIdBuilder(long idType, TimeSupport timeSupport, MachineIdProvider machineIdProvider) {
         this.idType = idType;
         this.timeSupport = timeSupport;
@@ -30,16 +28,17 @@ public class SnowflakeIdBuilder implements IdBuilder {
         model = IdModel.parseModel(idType);
     }
 
+    // 在多线程访问的情况下，lastTime 和 serial 可能导致并发问题，需要进行枷锁
     @Override
-    public String buildId() {
+    public synchronized String buildId() {
         // 拿到 machine id
-        int machineId = machineIdProvider.buildMachineId();
-        long curTime = timeSupport.getTime();
-        if (curTime == lastTime) {
+        int machineId = machineIdProvider.buildMachineId(); // 拿到 machine id
+        long curTime = timeSupport.getTime();   // 获取当前时间
+        if (curTime == timeSupport.getLastTime()) {  //  如果时间重复了，需要通过序列号来区分
             serial++;
-            serial &= model.getSerialMask();
+            serial &= model.getSerialMask();    // 如果序列号超过了上界，那就必须要等待到下一个最小时刻了
             if (serial == 0) {
-                curTime = timeSupport.waitUntilNextTimeUnit();
+                curTime = timeSupport.waitUntilNextTimeUnit();  // 线程自旋到下一个最小时间单元
             }
         } else {
             serial = 0;
@@ -49,6 +48,7 @@ public class SnowflakeIdBuilder implements IdBuilder {
         id |= (curTime << model.getTimePos());
         id |= (serial << model.getSerialPos());
         id |= machineId;
+        System.out.println(Long.toBinaryString(id));
         return String.valueOf(id);
     }
 }

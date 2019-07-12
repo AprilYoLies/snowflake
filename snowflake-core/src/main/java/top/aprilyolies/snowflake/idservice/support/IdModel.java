@@ -53,7 +53,8 @@ public class IdModel {
         } else if (type == 1) {
             return new IdModel(63, 22, 10, 0);
         } else {
-            throw new IllegalArgumentException("Can't parse id model for type " + type + " , please use 0 for maximum peak type or 1 for minimum granularity");
+            throw new IllegalArgumentException("Can't parse id model for type " + type + " , please use 0 for maximum peak type " +
+                    "or 1 for minimum granularity");
         }
     }
 

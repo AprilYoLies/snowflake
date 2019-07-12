@@ -9,9 +9,9 @@ public class TimeSupport {
     // id 的类型
     private final long idType;
     // 秒元时间
-    private final long SECONDS_EPOCH = 1560000000L;
+    private static final long SECONDS_EPOCH = 1560000000L;
     // 毫秒元时间
-    private final long MILLISECONDS_EPOCH = 1560000000000L;
+    private static final long MILLISECONDS_EPOCH = 1560000000000L;
     // id 数据结构模型
     private final IdModel model;
     // 秒级 id 的时间戳最大值
@@ -56,11 +56,11 @@ public class TimeSupport {
         return curTime;
     }
 
-    public long getLastTime() {
-        return lastTime;
-    }
-
     public void setLastTime(long lastTime) {
         this.lastTime = lastTime;
+    }
+
+    public long getLastTime() {
+        return lastTime;
     }
 }

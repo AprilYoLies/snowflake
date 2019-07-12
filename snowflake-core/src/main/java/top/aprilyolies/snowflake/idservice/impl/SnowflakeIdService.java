@@ -24,18 +24,18 @@ import top.aprilyolies.snowflake.machineid.MachineIdProvider;
  * 生成id的模式     -    时间戳    -    序列号     -      机器id
  */
 public class SnowflakeIdService extends AbstractIdService {
-    // id 的类型（最大峰值型或最小粒度型）
-    private long idType;
+    // snowflake 算法的 id 生成器（该实例是单例的）
+    private final SnowflakeIdBuilder builder;
+
 
     public SnowflakeIdService(long idType, MachineIdProvider machineIdProvider) {
         super(machineIdProvider);
-        this.idType = idType;
         this.timeSupport = new TimeSupport(idType);
+        this.builder = new SnowflakeIdBuilder(idType, timeSupport, machineIdProvider);
     }
 
     @Override
     public String generateId() {
-        SnowflakeIdBuilder builder = new SnowflakeIdBuilder(idType, timeSupport, machineIdProvider);
         return builder.buildId();
     }
 }

@@ -2,6 +2,7 @@ package top.aprilyolies.snowflake.common;
 
 import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.support.IdModel;
+import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
@@ -42,11 +43,13 @@ public class CommonTest {
     @Test
     public void testSnowflakeIdBuilder() {
         PropertyMachineIdProvider provider = new PropertyMachineIdProvider();
+        TimeSupport timeSupport1 = new TimeSupport(0);
 
-        SnowflakeIdBuilder builder1 = new SnowflakeIdBuilder(0, 1562841139L, 2097152, provider);
+        SnowflakeIdBuilder builder1 = new SnowflakeIdBuilder(0, timeSupport1, provider);
         String sid1 = builder1.buildId();
 
-        SnowflakeIdBuilder builder2 = new SnowflakeIdBuilder(1, 1562841139707L, 2097152, provider);
+        TimeSupport timeSupport2 = new TimeSupport(0);
+        SnowflakeIdBuilder builder2 = new SnowflakeIdBuilder(1, timeSupport2, provider);
         String sid2 = builder2.buildId();
 
         System.out.println(sid1 + " : " + sid2);
@@ -62,6 +65,17 @@ public class CommonTest {
         IdModel model = IdModel.parseModel(0);
         long maxTimes = (1 << (model.getTypePos() - model.getTimePos())) - 1;
         System.out.println(maxTimes);
+    }
+
+    @Test
+    public void testGenerateMask() {
+        System.out.println(~(-1L << (2)));
+        System.out.println(1 << 2);
+    }
+
+    @Test
+    public void testGenMaxTime() {
+        System.out.println((1L << (41)) - 1);
     }
 
 }
