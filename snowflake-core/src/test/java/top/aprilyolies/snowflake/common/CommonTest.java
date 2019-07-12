@@ -6,6 +6,11 @@ import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+
 /**
  * @Author EvaJohnson
  * @Date 2019-07-11
@@ -82,5 +87,28 @@ public class CommonTest {
     public void testGetTempFolder() {
         String property = System.getProperty("java.io.tmpdir");
         System.out.println(property);
+    }
+
+    @Test
+    public void testGetIpAddress() {
+        String ip = null;
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    if (!inetAddress.isLoopbackAddress()    // 查看当前 ip 是否是本地回环地址
+                            && !inetAddress.isLinkLocalAddress()    // 链路本地地址
+                            && inetAddress.isSiteLocalAddress()) {  // 这个算是公网地址？？
+                        ip = inetAddress.getHostAddress();
+                    }
+                }
+            }
+            System.out.println(ip);
+        } catch (SocketException e) {
+            System.out.println(ip);
+        }
     }
 }
