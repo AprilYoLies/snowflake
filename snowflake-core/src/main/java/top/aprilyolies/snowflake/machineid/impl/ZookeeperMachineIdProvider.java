@@ -1,6 +1,5 @@
 package top.aprilyolies.snowflake.machineid.impl;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryUntilElapsed;
@@ -9,8 +8,6 @@ import org.apache.zookeeper.data.Stat;
 import org.springframework.util.StringUtils;
 import top.aprilyolies.snowflake.machineid.AbstractMachineIdProvider;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +22,6 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
     private final String host;
     // zk 客户端
     private CuratorFramework zkClient;
-    // 本地用于存放 machine id 的文件
-    private static final String LOCAL_MACHINE_ID_FILE = System.getProperty("java.io.tmpdir") + "machine_id";
     // 用于注册到 zookeeper 的标识信息
     private String ipAddress;
     // 注册中心注册 ip 和 machine 信息的路径
@@ -72,36 +67,11 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
         } catch (Exception e) {
             logger.info("Can't get machine id from zookeeper, and snowflake will try to fetch machine id from local file, if still can't," +
                     "snowflake will exit with an exception thrown");
+            fetchMachineIdFromLocalCache();
+            checkMachineId(machineId);
         }
     }
 
-    // 将 machine id 缓存到 machine id file 中，或者是更新其中的内容
-    private boolean storeOrUpdateMachineId(int machineId) {
-        try {
-            File file = new File(LOCAL_MACHINE_ID_FILE);
-            if (file.exists()) {    // 如果缓存文件存在，就直接更新其中的内容
-                logger.info("The machine id cache file in {} is existed, try to update the machine id cache file content", LOCAL_MACHINE_ID_FILE);
-                FileUtils.write(file, String.valueOf(machineId), false);
-            } else {
-                logger.info("The machine id cache file in {} is not existed, try to create a new file and store the machine id", LOCAL_MACHINE_ID_FILE);
-                boolean mkdir = file.getParentFile().mkdirs();   // 否则先创建父文件夹
-                if (mkdir) {
-                    logger.info("Create parent path {} successfully", LOCAL_MACHINE_ID_FILE.substring(0, LOCAL_MACHINE_ID_FILE.lastIndexOf(File.separator)));
-                    FileUtils.writeStringToFile(file, String.valueOf(machineId), false);    // 创建文件成功，将 machine id 信息写入其中
-                } else {
-                    logger.info("Create parent path {} failed", LOCAL_MACHINE_ID_FILE.substring(0, LOCAL_MACHINE_ID_FILE.lastIndexOf(File.separator)));
-                    if (file.getParentFile().exists()) {
-                        FileUtils.writeStringToFile(file, String.valueOf(machineId), false);    // 创建文件成功，将 machine id 信息写入其中
-                    } else {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
 
     // 在 zookeeper 上创建序列化的
     private void getMachineId() throws Exception {

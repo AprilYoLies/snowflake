@@ -1,15 +1,18 @@
 package top.aprilyolies.snowflake.common;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import top.aprilyolies.snowflake.idservice.support.IdModel;
 import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * @Author EvaJohnson
@@ -134,5 +137,19 @@ public class CommonTest {
         s1.intern();
         String s2 = "str01";
         System.out.println(s1 == s2);
+    }
+
+    @Test
+    public void testFetchMachineIdFromLocalCache() {
+        File file = new File(System.getProperty("java.io.tmpdir") + "machine_id");
+        if (file.exists()) {
+            try {
+                List<String> lines = FileUtils.readLines(file);
+                if (lines.size() > 0) {
+                    String line = lines.get(0);
+                }
+            } catch (Exception e) {
+            }
+        }
     }
 }

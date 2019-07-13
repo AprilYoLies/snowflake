@@ -29,7 +29,34 @@ public class MysqlMachineIdProvider extends AbstractMachineIdProvider {
 
     @Override
     public void init() {
-        MachineId machineIdByIpAddress = dao.getMachineIdByIpAddress(ipAddress);
-        System.out.println(machineIdByIpAddress);
+        MachineId machineIdObj;
+        machineIdObj = dao.getMachineIdByIpAddress(ipAddress);
+        if (machineIdObj == null) {
+            int res = dao.updateMachineIdByIpAddress(ipAddress);
+            if (res > 0) {
+                machineIdObj = dao.getMachineIdByIpAddress(ipAddress);
+                if (machineIdObj != null) {
+                    machineId = machineIdObj.getMachineId();
+                } else {
+                    logger.warn("Can't get machine id from database, try to fetch machine id from local cache");
+                    machineId = fetchMachineIdFromLocalCache();
+                }
+            } else {
+                logger.warn("Can't get machine id from database, try to fetch machine id from local cache");
+                machineId = fetchMachineIdFromLocalCache();
+                checkMachineId(machineId);
+                return;
+            }
+        } else {
+            machineId = machineIdObj.getMachineId();
+            checkMachineId(machineId);
+            return;
+        }
+        checkMachineId(machineId);
+        if (storeOrUpdateMachineId(machineId)) {
+            logger.info("Store machine id in {} successfully", LOCAL_MACHINE_ID_FILE);
+        } else {
+            logger.warn("Can't store machine id info in {}", LOCAL_MACHINE_ID_FILE);
+        }
     }
 }

@@ -1,9 +1,6 @@
 package top.aprilyolies.snowflake.machineid.dao;
 
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 /**
  * @Author EvaJohnson
@@ -17,4 +14,8 @@ public interface MysqlMachineIdMapper {
             @Result(column = "IP", property = "ipAddress")
     })
     MachineId getMachineIdByIpAddress(@Param("ipAddress") String ipAddress);
+
+
+    @Update("update MYSQL_MACHINE_ID_PROVIDER set IP = #{ipAddress} where IP is null limit 1")
+    void updateMachineIdByIpAddress(@Param("ipAddress") String ipAddress);
 }

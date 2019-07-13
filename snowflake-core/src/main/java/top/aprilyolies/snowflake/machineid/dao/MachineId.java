@@ -6,14 +6,22 @@ package top.aprilyolies.snowflake.machineid.dao;
  * @Email g863821569@gmail.com
  */
 public class MachineId {
-    private String machineId;
+    private Integer machineId;
     private String ipAddress;
 
-    public String getMachineId() {
+    public Integer getMachineId() {
         return machineId;
     }
 
-    public void setMachineId(String machineId) {
+    public void setMachineId(Integer machineId) {
         this.machineId = machineId;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 }
