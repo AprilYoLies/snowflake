@@ -14,6 +14,9 @@ import org.springframework.util.StringUtils;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
 import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
+import top.aprilyolies.snowflake.machineid.dao.MysqlMachineIdDao;
+import top.aprilyolies.snowflake.machineid.dao.MysqlMachineIdMapper;
+import top.aprilyolies.snowflake.machineid.dao.impl.MysqlMachineIdDaoImpl;
 import top.aprilyolies.snowflake.machineid.impl.MysqlMachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.ZookeeperMachineIdProvider;
@@ -83,8 +86,9 @@ public class IdServiceFactory implements FactoryBean {
                 return provider;
             case MYSQL:
                 DataSource dataSource = buildDataSource();  // 构建 datasource，硬编码使用 DruidDataSource
-                SqlSessionFactory sessionFactory = buildSessionFactory(dataSource);
-                provider = new MysqlMachineIdProvider(sessionFactory);
+                SqlSessionFactory sessionFactory = buildSessionFactory(dataSource, MysqlMachineIdMapper.class);
+                MysqlMachineIdDao machineIdDao = new MysqlMachineIdDaoImpl(sessionFactory);
+                provider = new MysqlMachineIdProvider(machineIdDao);
                 provider.init();
                 return provider;
             default:
@@ -92,11 +96,12 @@ public class IdServiceFactory implements FactoryBean {
         }
     }
 
-    // 构架 SqlSessionFactory，用于和数据库进行交互
-    private SqlSessionFactory buildSessionFactory(DataSource dataSource) {
+    // 构建 SqlSessionFactory，用于和数据库进行交互
+    private SqlSessionFactory buildSessionFactory(DataSource dataSource, Class clazz) {
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         Environment environment = new Environment("development", transactionFactory, dataSource);
         Configuration configuration = new Configuration(environment);
+        configuration.addMapper(clazz);
         return new SqlSessionFactoryBuilder().build(configuration);
     }
 

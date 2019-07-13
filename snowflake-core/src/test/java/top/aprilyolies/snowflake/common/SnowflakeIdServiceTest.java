@@ -22,6 +22,7 @@ public class SnowflakeIdServiceTest {
         factory.setIdType("0");
         factory.setServiceType("snowflake");
         factory.setMachineIdProvider(MachineIdProviderType.MYSQL);
+        factory.setDbUrl("jdbc:mysql://localhost:3306/snowflake");
         factory.setZkHost("119.23.247.86");
         factory.setUsername("root");
         factory.setPassword("kuaile1..");

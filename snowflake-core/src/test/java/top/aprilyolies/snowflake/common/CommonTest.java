@@ -111,4 +111,28 @@ public class CommonTest {
             System.out.println(ip);
         }
     }
+
+    @Test
+    public void testStringIntern1() {
+        String str1 = new String("str") + new String("01");
+        str1.intern();
+        String str2 = "str01";
+        System.out.println(str1 == str2);
+    }
+
+    @Test
+    public void testStringIntern2() {
+        String s2 = "str01";
+        String s1 = new String("str") + new String("01");
+        s1.intern();
+        System.out.println(s1 == s2);
+    }
+
+    @Test
+    public void testStringIntern3() {
+        String s1 = new String("str01");
+        s1.intern();
+        String s2 = "str01";
+        System.out.println(s1 == s2);
+    }
 }

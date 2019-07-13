@@ -11,10 +11,6 @@ import top.aprilyolies.snowflake.machineid.AbstractMachineIdProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,29 +132,5 @@ public class ZookeeperMachineIdProvider extends AbstractMachineIdProvider {
     @Override
     public int buildMachineId() {
         return machineId;
-    }
-
-    // 获取本地的 ip 地址，优先获取第一个可用的 ip 地址
-    private String getIpAddress() {
-        String ip = null;
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
-                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
-                while (inetAddresses.hasMoreElements()) {
-                    InetAddress inetAddress = inetAddresses.nextElement();
-                    if (!inetAddress.isLoopbackAddress()    // 查看当前 ip 是否是本地回环地址
-                            && !inetAddress.isLinkLocalAddress()    // 链路本地地址
-                            && inetAddress.isSiteLocalAddress()) {  // 这个算是公网地址？？
-                        ip = inetAddress.getHostAddress();
-                    }
-                }
-            }
-            return ip;
-        } catch (SocketException e) {
-            logger.error("None of ip address could be use, return null");
-            return null;
-        }
     }
 }

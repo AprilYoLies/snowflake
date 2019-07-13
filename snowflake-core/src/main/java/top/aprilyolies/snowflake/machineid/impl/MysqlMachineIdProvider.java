@@ -1,7 +1,8 @@
 package top.aprilyolies.snowflake.machineid.impl;
 
-import org.apache.ibatis.session.SqlSessionFactory;
 import top.aprilyolies.snowflake.machineid.AbstractMachineIdProvider;
+import top.aprilyolies.snowflake.machineid.dao.MachineId;
+import top.aprilyolies.snowflake.machineid.dao.MysqlMachineIdDao;
 
 /**
  * @Author EvaJohnson
@@ -9,19 +10,26 @@ import top.aprilyolies.snowflake.machineid.AbstractMachineIdProvider;
  * @Email g863821569@gmail.com
  */
 public class MysqlMachineIdProvider extends AbstractMachineIdProvider {
-    private final SqlSessionFactory sessionFactory;
+    // 构建 SqlSessionFactory，用于和数据库进行交互
+    private final MysqlMachineIdDao dao;
+    // 本机 ip
+    private final String ipAddress;
+    // machine id
+    private int machineId = -1;
 
-    public MysqlMachineIdProvider(SqlSessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+    public MysqlMachineIdProvider(MysqlMachineIdDao dao) {
+        this.dao = dao;
+        this.ipAddress = getIpAddress();
     }
 
     @Override
     public int buildMachineId() {
-        return 0;
+        return machineId;
     }
 
     @Override
     public void init() {
-        // empty
+        MachineId machineIdByIpAddress = dao.getMachineIdByIpAddress(ipAddress);
+        System.out.println(machineIdByIpAddress);
     }
 }
