@@ -17,4 +17,8 @@ public abstract class AbstractIdService implements IdService {
     public AbstractIdService(MachineIdProvider machineIdProvider) {
         this.machineIdProvider = machineIdProvider;
     }
+
+    public AbstractIdService() {
+
+    }
 }

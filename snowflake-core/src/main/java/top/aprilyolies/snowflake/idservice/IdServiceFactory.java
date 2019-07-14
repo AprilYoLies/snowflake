@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.StringUtils;
+import top.aprilyolies.snowflake.idservice.impl.SegmentIdMapper;
+import top.aprilyolies.snowflake.idservice.impl.SegmentIdService;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
 import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
@@ -55,12 +57,14 @@ public class IdServiceFactory implements FactoryBean {
         if (StringUtils.isEmpty(serviceType)) {
             throw new IllegalArgumentException("Service type should not be null");
         } else {
-            MachineIdProvider machineIdProvider = parseIdProvider(this.machineIdProvider);
-            long idType = Long.parseLong(this.idType);
             if (SNOWFLAKE_SERVICE.equals(serviceType)) {
+                long idType = Long.parseLong(this.idType);
+                MachineIdProvider machineIdProvider = parseIdProvider(this.machineIdProvider);
                 return new SnowflakeIdService(idType, machineIdProvider);
             } else if (SEGMENT_SERVICE.equals(serviceType)) {
-                return null;
+                DataSource ds = buildDataSource();
+                SqlSessionFactory sessionFactory = buildSessionFactory(ds, SegmentIdMapper.class);
+                return new SegmentIdService(sessionFactory);
             } else {
                 throw new IllegalStateException("Unsupported service type");
             }

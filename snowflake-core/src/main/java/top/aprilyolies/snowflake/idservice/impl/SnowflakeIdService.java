@@ -8,6 +8,7 @@ package top.aprilyolies.snowflake.idservice.impl;
 
 import top.aprilyolies.snowflake.idservice.AbstractIdService;
 import top.aprilyolies.snowflake.idservice.support.TimeSupport;
+import top.aprilyolies.snowflake.idservice.support.idbuilder.IdBuilder;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.MachineIdProvider;
 
@@ -25,8 +26,7 @@ import top.aprilyolies.snowflake.machineid.MachineIdProvider;
  */
 public class SnowflakeIdService extends AbstractIdService {
     // snowflake 算法的 id 生成器（该实例是单例的）
-    private final SnowflakeIdBuilder builder;
-
+    private final IdBuilder builder;
 
     public SnowflakeIdService(long idType, MachineIdProvider machineIdProvider) {
         super(machineIdProvider);
