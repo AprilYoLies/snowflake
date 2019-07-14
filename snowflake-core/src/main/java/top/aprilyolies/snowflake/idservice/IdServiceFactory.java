@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.StringUtils;
-import top.aprilyolies.snowflake.idservice.impl.SegmentIdMapper;
+import top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper;
 import top.aprilyolies.snowflake.idservice.impl.SegmentIdService;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
 import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;

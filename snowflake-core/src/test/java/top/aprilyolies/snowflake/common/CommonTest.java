@@ -11,8 +11,12 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @Author EvaJohnson
@@ -20,11 +24,22 @@ import java.util.List;
  * @Email g863821569@gmail.com
  */
 public class CommonTest {
+    volatile boolean flag = true;
+
     @Test
-    public void testPowerInOneMS() {
-        long current = System.currentTimeMillis();
+    public void testPowerInOneMS() throws InterruptedException {
         int count = 0;
-        while (current == System.currentTimeMillis()) {
+        CountDownLatch latch = new CountDownLatch(1);
+        new Thread(() -> {
+            long current = System.currentTimeMillis();
+            latch.countDown();
+            while (current == System.currentTimeMillis()) {
+
+            }
+            flag = false;
+        }).start();
+        latch.await();
+        while (flag) {
             count++;
         }
         System.out.println(count);
@@ -150,6 +165,37 @@ public class CommonTest {
                 }
             } catch (Exception e) {
             }
+        }
+    }
+
+
+    public void testBatchInsert() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/db";
+            String username = "";
+            String password = "";
+            Connection connection = DriverManager.getConnection(url, username, password);
+            connection.setAutoCommit(false);
+            String tableName = "";
+            String fileName = "";
+            for (int i = 0; i < 92; i++) {
+                tableName = i < 100 ? "0" + i : i + "";
+                fileName = "0" + tableName;
+                String sql = "load data local infile '/mobikedata/" + fileName + ".txt' into table mobike" + tableName;
+                PreparedStatement ps = connection.prepareStatement(sql);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testSegmentExchange() {
+        int cur = 0;
+        for (int i = 0; i < 100; i++) {
+            cur = ++cur & 1;
+            System.out.println(cur);
         }
     }
 }

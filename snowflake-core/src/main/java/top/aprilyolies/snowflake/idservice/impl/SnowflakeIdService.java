@@ -38,4 +38,9 @@ public class SnowflakeIdService extends AbstractIdService {
     public String generateId() {
         return builder.buildId();
     }
+
+    @Override
+    public String generateId(String business) {
+        return generateId();
+    }
 }

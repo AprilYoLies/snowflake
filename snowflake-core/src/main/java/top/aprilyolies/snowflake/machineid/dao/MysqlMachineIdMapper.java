@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.*;
  * @Email g863821569@gmail.com
  */
 public interface MysqlMachineIdMapper {
-    @Select("select ID from MYSQL_MACHINE_ID_PROVIDER where ip = #{ipAddress}")
+    @Select("select ID,IP from MYSQL_MACHINE_ID_PROVIDER where ip = #{ipAddress}")
     @Results(value = {
             @Result(column = "ID", property = "machineId"),
             @Result(column = "IP", property = "ipAddress")

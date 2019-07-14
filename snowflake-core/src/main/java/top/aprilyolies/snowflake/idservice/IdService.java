@@ -16,4 +16,11 @@ public interface IdService {
      * @return 生成的唯一 id
      */
     String generateId();
+
+    /**
+     * 生成 id 的方法
+     *
+     * @return 生成的唯一 id
+     */
+    String generateId(String business);
 }

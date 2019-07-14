@@ -45,7 +45,7 @@ public class SnowflakeIdServiceTest {
                 try {
                     for (int j = 0; j < 1000; j++) {
                         String id = service.generateId();
-                        System.out.println(id);
+//                        System.out.println(id);
                     }
                 } finally {
                     latch.countDown();
