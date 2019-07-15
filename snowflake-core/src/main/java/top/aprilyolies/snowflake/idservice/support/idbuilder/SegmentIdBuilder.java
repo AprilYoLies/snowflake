@@ -28,6 +28,8 @@ public class SegmentIdBuilder implements IdBuilder {
     private boolean initialized = false;
     // 当前使用的缓存的索引下标
     private int cur = 0;
+    // 下一个将要使用的 segment 的索引
+    private int next = 1;
     // 步进值
     private int step = 10;
     // 用于后台更新 segment 的线程池
@@ -74,16 +76,17 @@ public class SegmentIdBuilder implements IdBuilder {
                 if (!loading) {
                     long used = segment.cur - segment.begin;
                     if (step * 0.2 < used) {
-                        executor.execute(new LoadSegmentTask());
+                        executor.execute(new LoadSegmentTask(next));
                         loading = true;
                     }
                 }
                 return segment.getId();
             } else {
                 loading = false;
-                cur = ++cur & 1;    // 切换到另外一个 segment
+                changeSegment();
                 segment = segments[cur];
                 if (segment.initialized) {
+                    waitSegmentLoaded(segment);
                     return segment.getId();
                 } else {
                     waitSegmentLoaded(segment);
@@ -106,18 +109,23 @@ public class SegmentIdBuilder implements IdBuilder {
 
     // 该 Task 用于后台更新 segment 的信息
     private class LoadSegmentTask implements Runnable {
+        private final int idx;
+
+        public LoadSegmentTask(int next) {
+            this.idx = next;
+        }
+
         @Override
         public void run() {
-            int next = ++cur & 1;
-            Segment segment = segments[next];
+            Segment segment = segments[idx];
             SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
             segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
-            segment.initialized = true;
             loaded.release();
+            segment.initialized = true;
         }
     }
 
-    // segment 后台更新线程工程
+    // segment 后台更新线程工厂
     private class SegmentTaskThreadFactory implements ThreadFactory {
         @Override
         public Thread newThread(Runnable r) {
@@ -126,6 +134,13 @@ public class SegmentIdBuilder implements IdBuilder {
             thread.setName("segment-updater");
             return thread;
         }
+    }
+
+    // 切换正在使用的 segment
+    private void changeSegment() {
+        int temp = cur;
+        cur = next;
+        next = temp;
     }
 
     private class Segment {
