@@ -8,6 +8,7 @@ import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -17,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
 /**
  * @Author EvaJohnson
@@ -197,5 +199,26 @@ public class CommonTest {
             cur = ++cur & 1;
             System.out.println(cur);
         }
+    }
+
+    @Test
+    public void testLoadBegin() {
+        System.out.println(1000 * 0.2);
+    }
+
+    @Test
+    public void testSemaphore() throws IOException {
+        Semaphore semaphore = new Semaphore(0);
+        semaphore.release();
+        new Thread(() -> {
+            try {
+                System.out.println("begin");
+                semaphore.acquire();
+                System.out.println("end");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        System.in.read();
     }
 }

@@ -31,8 +31,10 @@ public class SegmentIdServiceTest {
     @Test
     public void testSnowflakeUseProperty() throws Exception {
         IdService service = (IdService) factory.getObject();
-        String id = service.generateId("order");
-        System.out.println(id);
+        for (int i = 0; i < 10000; i++) {
+            String id = service.generateId("order");
+            System.out.println(id);
+        }
     }
 
     @Test
@@ -43,7 +45,7 @@ public class SegmentIdServiceTest {
         for (int i = 0; i < 10; i++) {
             new Thread(() -> {
                 try {
-                    for (int j = 0; j < 50; j++) {
+                    for (int j = 0; j < 1000; j++) {
                         String id = service.generateId("order");
                         System.out.println(id);
                     }

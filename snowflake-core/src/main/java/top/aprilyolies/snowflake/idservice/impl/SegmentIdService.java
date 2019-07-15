@@ -19,7 +19,7 @@ public class SegmentIdService extends AbstractIdService {
     Logger logger = LoggerFactory.getLogger(SegmentIdService.class);
     // 会话工厂，用于和数据库进行交互
     private final SqlSessionFactory sessionFactory;
-
+    // 用于缓存 SegmentIdBuilder
     Map<String, IdBuilder> builders = new HashMap<>();
 
     public SegmentIdService(SqlSessionFactory sessionFactory) {

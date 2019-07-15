@@ -2,7 +2,14 @@ package top.aprilyolies.snowflake.idservice.support.idbuilder;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import top.aprilyolies.snowflake.idservice.impl.support.SegmentInfo;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * @Author EvaJohnson
@@ -10,16 +17,25 @@ import top.aprilyolies.snowflake.idservice.impl.support.SegmentInfo;
  * @Email g863821569@gmail.com
  */
 public class SegmentIdBuilder implements IdBuilder {
+    Logger logger = LoggerFactory.getLogger(SegmentIdBuilder.class);
     // 数据库会话工厂，用于和数据库交互
     private final SqlSessionFactory sessionFactory;
     // idBuilder 所对应的业务名称
     private final String business;
     // 代表本地的两个缓存
     private final Segment[] segments = new Segment[]{new Segment(), new Segment()};
-
+    // 判定 builder 是否初始化过，即第一个 segment 是否初始化完成
     private boolean initialized = false;
     // 当前使用的缓存的索引下标
     private int cur = 0;
+    // 步进值
+    private int step = 10;
+    // 用于后台更新 segment 的线程池
+    private Executor executor = Executors.newCachedThreadPool(new SegmentTaskThreadFactory());
+    // 记录 segment 加载的状态
+    private boolean loading = false;
+
+    private Semaphore loaded = new Semaphore(0);
 
     public SegmentIdBuilder(SqlSessionFactory sessionFactory, String business) {
         this.sessionFactory = sessionFactory;
@@ -29,7 +45,7 @@ public class SegmentIdBuilder implements IdBuilder {
     public boolean init() {
         if (!initialized) {
             Segment segment = segments[cur];
-            SegmentInfo segmentInfo = getSegmentInfoFromDB(business, segment.getStep());
+            SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
             segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
             return initialized = true;
         }
@@ -47,33 +63,82 @@ public class SegmentIdBuilder implements IdBuilder {
 
     @Override
     public synchronized String buildId() {
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (initialized) {
             Segment segment = segments[cur];
             if (segment.initialized) {
+                if (!loading) {
+                    long used = segment.cur - segment.begin;
+                    if (step * 0.2 < used) {
+                        executor.execute(new LoadSegmentTask());
+                        loading = true;
+                    }
+                }
                 return segment.getId();
             } else {
-                cur = ++cur & 1;
+                loading = false;
+                cur = ++cur & 1;    // 切换到另外一个 segment
                 segment = segments[cur];
-                return segment.getId();
+                if (segment.initialized) {
+                    return segment.getId();
+                } else {
+                    waitSegmentLoaded(segment);
+                    return segment.getId();
+                }
             }
         } else {
             throw new IllegalStateException("Segment id builder hasn't been initialized");
         }
     }
 
+    // 等待 segment 加载完成
+    private void waitSegmentLoaded(Segment segment) {
+        try {
+            loaded.acquire();
+        } catch (InterruptedException e) {
+            logger.error("Waiting for segment loaded was interrupted by other thread");
+        }
+    }
+
+    // 该 Task 用于后台更新 segment 的信息
+    private class LoadSegmentTask implements Runnable {
+        @Override
+        public void run() {
+            int next = ++cur & 1;
+            Segment segment = segments[next];
+            SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
+            segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
+            segment.initialized = true;
+            loaded.release();
+        }
+    }
+
+    // segment 后台更新线程工程
+    private class SegmentTaskThreadFactory implements ThreadFactory {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            thread.setName("segment-updater");
+            return thread;
+        }
+    }
+
     private class Segment {
         // 业务名称
-        private String business;
+        private volatile String business;
         // 起始 id 号
-        private long begin;
+        private volatile long begin;
         // 终止 id 号
-        private long end;
+        private volatile long end;
         // 当前 id
         private long cur;
 
-        private int step = 1000;
-
-        private boolean initialized = false;
+        private volatile boolean initialized = false;
 
         public String getBusiness() {
             return business;
@@ -97,14 +162,6 @@ public class SegmentIdBuilder implements IdBuilder {
 
         public void setEnd(long end) {
             this.end = end;
-        }
-
-        public int getStep() {
-            return step;
-        }
-
-        public void setStep(int step) {
-            this.step = step;
         }
 
         public void init(long begin, long end, String business) {
