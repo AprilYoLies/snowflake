@@ -1,12 +1,23 @@
 package top.aprilyolies.snowflake.common;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.io.FileUtils;
+import org.apache.ibatis.mapping.Environment;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.apache.ibatis.transaction.TransactionFactory;
+import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.junit.Test;
+import top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper;
+import top.aprilyolies.snowflake.idservice.impl.support.SegmentInfo;
 import top.aprilyolies.snowflake.idservice.support.IdModel;
 import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,6 +26,7 @@ import java.net.SocketException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -242,7 +254,65 @@ public class CommonTest {
     }
 
     @Test
-    public void testFutureTask() {
+    public void testSqlSession() {
+        DataSource ds = buildDataSource();
+        SqlSessionFactory factory = buildSessionFactory(ds, SegmentIdMapper.class);
+        for (int i = 0; i < 10; i++) {
+            System.out.println(i);
+            SqlSession sqlSession1 = factory.openSession();
+            sqlSession1.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", 12);
+            SegmentInfo segmentInfo = sqlSession1.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", "order");
+            sqlSession1.commit();
+        }
+    }
 
+    @Test
+    public void testSqlSessionMultiThread() {
+        DataSource ds = buildDataSource();
+        SqlSessionFactory factory = buildSessionFactory(ds, SegmentIdMapper.class);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    SqlSession sqlSession1 = factory.openSession();
+                    sqlSession1.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", 12);
+                    SegmentInfo segmentInfo = sqlSession1.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", "order");
+                    sqlSession1.commit();
+                    System.out.println(i);
+                }
+            }
+        }).start();
+        for (int i = 0; i < 10; i++) {
+            SqlSession sqlSession1 = factory.openSession();
+            sqlSession1.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", 12);
+            SegmentInfo segmentInfo = sqlSession1.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", "order");
+            sqlSession1.commit();
+            System.out.println(i);
+        }
+    }
+
+    // 构建 SqlSessionFactory，用于和数据库进行交互
+    private SqlSessionFactory buildSessionFactory(DataSource dataSource, Class clazz) {
+        TransactionFactory transactionFactory = new JdbcTransactionFactory();
+        Environment environment = new Environment("development", transactionFactory, dataSource);
+        Configuration configuration = new Configuration(environment);
+        configuration.addMapper(clazz);
+        return new SqlSessionFactoryBuilder().build(configuration);
+    }
+
+    // 构建 datasource，硬编码使用 DruidDataSource
+    private DataSource buildDataSource() {
+        DruidDataSource dataSource = null;
+        try {
+            // Config dataSource
+            dataSource = new DruidDataSource();
+            dataSource.setUrl("jdbc:mysql://localhost:3306/snowflake");
+            dataSource.setUsername("root");
+            dataSource.setPassword("kuaile1..");
+            dataSource.init();
+            return dataSource;
+        } catch (SQLException e) {
+            return dataSource;
+        }
     }
 }

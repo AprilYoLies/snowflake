@@ -33,7 +33,7 @@ public class SegmentIdServiceTest {
         IdService service = (IdService) factory.getObject();
         for (int i = 0; i < 10000; i++) {
             String id = service.generateId("order");
-            System.out.println(id);
+//            System.out.println(id);
         }
     }
 
@@ -55,5 +55,6 @@ public class SegmentIdServiceTest {
             }).start();
         }
         latch.await();
+        System.out.println(System.currentTimeMillis() - start);
     }
 }

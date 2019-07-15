@@ -31,7 +31,7 @@ public class SegmentIdBuilder implements IdBuilder {
     // 下一个将要使用的 segment 的索引
     private int next = 1;
     // 步进值
-    private int step = 20;
+    private int step = 50;
     // 用于后台更新 segment 的线程池
     private Executor executor = Executors.newCachedThreadPool(new SegmentTaskThreadFactory());
     // 记录 segment 加载的状态
@@ -56,11 +56,13 @@ public class SegmentIdBuilder implements IdBuilder {
 
     // 根据 business 从数据库中获取对应的数据记录
     public SegmentInfo getSegmentInfoFromDB(String business, int step) {
+        System.out.println(Thread.currentThread());
         SqlSession session = sessionFactory.openSession();
         session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", step);
         SegmentInfo segmentInfo = session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
         session.commit();
-        session.close();    // 如果关闭会话，会导致死锁问题
+//        session.close();    // 如果关闭会话，会导致死锁问题
+        System.out.println("finished");
         return segmentInfo;
     }
 
@@ -82,6 +84,7 @@ public class SegmentIdBuilder implements IdBuilder {
                 changeSegment();
                 segment = segments[cur];
                 if (segment.initialized) {
+                    waitSegmentLoaded();    // 防止被异常唤醒
                     return segment.getId();
                 } else {
                     waitSegmentLoaded();    // 等待任务完成
@@ -122,11 +125,13 @@ public class SegmentIdBuilder implements IdBuilder {
 
     // segment 后台更新线程工厂
     private class SegmentTaskThreadFactory implements ThreadFactory {
+        int count = 0;
+
         @Override
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
-            thread.setName("segment-updater");
+            thread.setName("segment-updater-" + count++);
             return thread;
         }
     }
