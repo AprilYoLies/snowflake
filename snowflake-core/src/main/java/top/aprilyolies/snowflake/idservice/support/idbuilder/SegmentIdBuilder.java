@@ -31,7 +31,7 @@ public class SegmentIdBuilder implements IdBuilder {
     // 下一个将要使用的 segment 的索引
     private int next = 1;
     // 步进值
-    private int step = 10;
+    private int step = 20;
     // 用于后台更新 segment 的线程池
     private Executor executor = Executors.newCachedThreadPool(new SegmentTaskThreadFactory());
     // 记录 segment 加载的状态
@@ -60,16 +60,12 @@ public class SegmentIdBuilder implements IdBuilder {
         session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", step);
         SegmentInfo segmentInfo = session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
         session.commit();
+        session.close();    // 如果关闭会话，会导致死锁问题
         return segmentInfo;
     }
 
     @Override
     public synchronized String buildId() {
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         if (initialized) {
             Segment segment = segments[cur];
             if (segment.initialized) {
@@ -86,10 +82,9 @@ public class SegmentIdBuilder implements IdBuilder {
                 changeSegment();
                 segment = segments[cur];
                 if (segment.initialized) {
-                    waitSegmentLoaded(segment);
                     return segment.getId();
                 } else {
-                    waitSegmentLoaded(segment);
+                    waitSegmentLoaded();    // 等待任务完成
                     return segment.getId();
                 }
             }
@@ -99,9 +94,9 @@ public class SegmentIdBuilder implements IdBuilder {
     }
 
     // 等待 segment 加载完成
-    private void waitSegmentLoaded(Segment segment) {
+    private void waitSegmentLoaded() {
         try {
-            loaded.acquire();
+            loaded.acquire();   // 等待任务完成
         } catch (InterruptedException e) {
             logger.error("Waiting for segment loaded was interrupted by other thread");
         }
@@ -155,29 +150,6 @@ public class SegmentIdBuilder implements IdBuilder {
 
         private volatile boolean initialized = false;
 
-        public String getBusiness() {
-            return business;
-        }
-
-        public void setBusiness(String business) {
-            this.business = business;
-        }
-
-        public long getBegin() {
-            return begin;
-        }
-
-        public void setBegin(long begin) {
-            this.begin = begin;
-        }
-
-        public long getEnd() {
-            return end;
-        }
-
-        public void setEnd(long end) {
-            this.end = end;
-        }
 
         public void init(long begin, long end, String business) {
             this.begin = begin;

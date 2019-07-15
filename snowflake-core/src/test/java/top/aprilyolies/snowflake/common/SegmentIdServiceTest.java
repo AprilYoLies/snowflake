@@ -55,6 +55,5 @@ public class SegmentIdServiceTest {
             }).start();
         }
         latch.await();
-        System.out.println(System.currentTimeMillis() - start);
     }
 }

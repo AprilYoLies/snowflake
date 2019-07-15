@@ -170,7 +170,7 @@ public class CommonTest {
         }
     }
 
-
+    @Test
     public void testBatchInsert() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -220,5 +220,29 @@ public class CommonTest {
             }
         }).start();
         System.in.read();
+    }
+
+    @Test
+    public void testSemaphore1() {
+        Semaphore semaphore = new Semaphore(0);
+        new Thread(() -> {
+            try {
+                semaphore.acquire();
+                System.out.println("finished");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        try {
+            Thread.sleep(5000);
+            semaphore.release();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testFutureTask() {
+
     }
 }
