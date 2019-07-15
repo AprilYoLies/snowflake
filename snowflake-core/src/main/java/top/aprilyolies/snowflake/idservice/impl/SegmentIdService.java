@@ -29,7 +29,7 @@ public class SegmentIdService extends AbstractIdService {
     @Override
     public String generateId() {
         throw new UnsupportedOperationException("Only snowflake id provider could call this method, segment id provider should call " +
-                "top.aprilyolies.snowflake.idservice.impl.SegmentIdService.generateId(java.lang.String)");
+                "top.aprilyolies.snowflake.idservice.impl.SegmentIdService.generateId(java.lang.String business)");
     }
 
     /**
@@ -43,15 +43,20 @@ public class SegmentIdService extends AbstractIdService {
         if (builders.containsKey(business)) {
             return builders.get(business).buildId();
         } else {    // 缓存中没有对应的 idBuilder，所以直接构建一个，完成初始化后，用它来返回 id
-            return builders.computeIfAbsent(business, (t) -> {
-                SegmentIdBuilder builder = new SegmentIdBuilder(sessionFactory, business);
-                if (builder.init()) {
-                    return builder;
-                } else {
-                    logger.warn("Segment id builder was build successfully, but initialize failed");
-                    return builder;
+            synchronized (this) {
+                if (!builders.containsKey(business)) {
+                    return builders.computeIfAbsent(business, (t) -> {
+                        SegmentIdBuilder builder = new SegmentIdBuilder(sessionFactory, business);
+                        if (builder.init()) {
+                            return builder;
+                        } else {
+                            logger.warn("Segment id builder was build successfully, but initialize failed");
+                            return builder;
+                        }
+                    }).buildId();
                 }
-            }).buildId();
+            }
+            return builders.get(business).buildId();
         }
     }
 }

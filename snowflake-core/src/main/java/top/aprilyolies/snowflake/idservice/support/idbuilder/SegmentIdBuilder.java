@@ -28,8 +28,8 @@ public class SegmentIdBuilder implements IdBuilder {
 
     public boolean init() {
         if (!initialized) {
-            SegmentInfo segmentInfo = getSegmentInfoFromDB(business);
             Segment segment = segments[cur];
+            SegmentInfo segmentInfo = getSegmentInfoFromDB(business, segment.getStep());
             segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
             return initialized = true;
         }
@@ -37,21 +37,27 @@ public class SegmentIdBuilder implements IdBuilder {
     }
 
     // 根据 business 从数据库中获取对应的数据记录
-    public SegmentInfo getSegmentInfoFromDB(String business) {
+    public SegmentInfo getSegmentInfoFromDB(String business, int step) {
         SqlSession session = sessionFactory.openSession();
-        session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable");
-        return session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
+        session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", step);
+        SegmentInfo segmentInfo = session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
+        session.commit();
+        return segmentInfo;
     }
 
     @Override
     public synchronized String buildId() {
-        Segment segment = segments[cur];
-        if (segment.initialized) {
-            return segment.getId();
+        if (initialized) {
+            Segment segment = segments[cur];
+            if (segment.initialized) {
+                return segment.getId();
+            } else {
+                cur = ++cur & 1;
+                segment = segments[cur];
+                return segment.getId();
+            }
         } else {
-            cur = ++cur & 1;
-            segment = segments[cur];
-            return segment.getId();
+            throw new IllegalStateException("Segment id builder hasn't been initialized");
         }
     }
 
@@ -64,6 +70,8 @@ public class SegmentIdBuilder implements IdBuilder {
         private long end;
         // 当前 id
         private long cur;
+
+        private int step = 1000;
 
         private boolean initialized = false;
 
@@ -89,6 +97,14 @@ public class SegmentIdBuilder implements IdBuilder {
 
         public void setEnd(long end) {
             this.end = end;
+        }
+
+        public int getStep() {
+            return step;
+        }
+
+        public void setStep(int step) {
+            this.step = step;
         }
 
         public void init(long begin, long end, String business) {

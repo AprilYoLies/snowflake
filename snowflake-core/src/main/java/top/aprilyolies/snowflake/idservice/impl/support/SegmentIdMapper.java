@@ -18,6 +18,6 @@ public interface SegmentIdMapper {
     SegmentInfo getSegmentInfoFromDB(@Param("business") String business);
 
     // 根据 step 更新 business 对应的 segment 的信息
-    @Update("UPDATE  SEGMENT_ID_TABLE SET `begin` = `begin` + #{step},`end` = `end` + #{step} where business = 'order'")
+    @Update("UPDATE  SEGMENT_ID_TABLE SET `begin` = `end` + 1,`end` = `begin` + #{step} where business = 'order'")
     int updateSegmentTable(String business, int step);
 }
