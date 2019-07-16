@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.aprilyolies.snowflake.idservice.impl.support.SegmentInfo;
 
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -57,7 +58,10 @@ public class SegmentIdBuilder implements IdBuilder {
     // 根据 business 从数据库中获取对应的数据记录
     public SegmentInfo getSegmentInfoFromDB(String business, int step) {
         SqlSession session = sessionFactory.openSession();
-        session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", step);
+        HashMap<String, String> params = new HashMap<>(2);
+        params.put("business", business);
+        params.put("step", String.valueOf(step));
+        session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", params);
         SegmentInfo segmentInfo = session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
         session.commit();
         session.close();    // 如果关闭会话，会导致线程阻塞
