@@ -64,6 +64,7 @@ public class PropertyUtils {
         snowflakeProperties.setZkHost(properties.getProperty("snowflake.zookeeper.host"));
         snowflakeProperties.setUsername(properties.getProperty("snowflake.database.username"));
         snowflakeProperties.setPassword(properties.getProperty("snowflake.database.password"));
+        snowflakeProperties.setServiceType(properties.getProperty("snowflake.service.type"));
         return snowflakeProperties;
     }
 }

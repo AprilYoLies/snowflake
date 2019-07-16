@@ -3,6 +3,7 @@ package top.aprilyolies.snowflake.idservice.impl;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.aprilyolies.snowflake.exception.BusinessNotExistedException;
 import top.aprilyolies.snowflake.idservice.AbstractIdService;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.IdBuilder;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SegmentIdBuilder;
@@ -45,15 +46,20 @@ public class SegmentIdService extends AbstractIdService {
         } else {    // 缓存中没有对应的 idBuilder，所以直接构建一个，完成初始化后，用它来返回 id
             synchronized (this) {
                 if (!builders.containsKey(business)) {
-                    return builders.computeIfAbsent(business, (t) -> {
-                        SegmentIdBuilder builder = new SegmentIdBuilder(sessionFactory, business);
-                        if (builder.init()) {
-                            return builder;
-                        } else {
-                            logger.warn("Segment id builder was build successfully, but initialize failed");
-                            return builder;
-                        }
-                    }).buildId();
+                    try {
+                        return builders.computeIfAbsent(business, (t) -> {
+                            SegmentIdBuilder builder = new SegmentIdBuilder(sessionFactory, business);
+                            if (builder.init()) {
+                                return builder;
+                            } else {
+                                logger.warn("Segment id builder was build successfully, but initialize failed");
+                                builders.remove(business);
+                                return builder;
+                            }
+                        }).buildId();
+                    } catch (BusinessNotExistedException e) {
+                        return "Business [ " + e.getBusiness() + " ] not existed.";
+                    }
                 }
             }
             return builders.get(business).buildId();

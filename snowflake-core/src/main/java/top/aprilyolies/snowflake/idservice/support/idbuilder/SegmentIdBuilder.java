@@ -4,6 +4,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.aprilyolies.snowflake.exception.BusinessNotExistedException;
 import top.aprilyolies.snowflake.idservice.impl.support.SegmentInfo;
 
 import java.util.HashMap;
@@ -46,13 +47,23 @@ public class SegmentIdBuilder implements IdBuilder {
     }
 
     public boolean init() {
-        if (!initialized) {
-            Segment segment = segments[cur];
-            SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
-            segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
-            return initialized = true;
+        try {
+            if (!initialized) {
+                Segment segment = segments[cur];
+                SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
+                if (segmentInfo == null) {
+                    throw new BusinessNotExistedException(business);
+                }
+                segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
+                return initialized = true;
+            }
+            return initialized = false;
+        } catch (BusinessNotExistedException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.info("Segment initializing failed, caused by {}", e.getCause().getMessage());
+            return initialized = false;
         }
-        return initialized = false;
     }
 
     // 根据 business 从数据库中获取对应的数据记录

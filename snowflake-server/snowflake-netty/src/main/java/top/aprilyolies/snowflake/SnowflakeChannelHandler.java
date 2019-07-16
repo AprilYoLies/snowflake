@@ -5,6 +5,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import top.aprilyolies.snowflake.idservice.IdService;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
 
@@ -23,6 +25,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  * @Email g863821569@gmail.com
  */
 public class SnowflakeChannelHandler extends ChannelInboundHandlerAdapter {
+    Logger logger = LoggerFactory.getLogger(SnowflakeChannelHandler.class);
     // SnowflakeIdService 实例
     private static final IdService snowIdService = IdServiceFactory.buildIdService(SnowflakeChannelHandler.class.getClassLoader(), "snowflake", "snowflake.properties");
     // SegmentIdService 实例
@@ -73,5 +76,10 @@ public class SnowflakeChannelHandler extends ChannelInboundHandlerAdapter {
             response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);  // 否则设置长连接头信息，将响应写回
             ctx.writeAndFlush(response);
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.info("Caught an exception, ignore this exception");
     }
 }
