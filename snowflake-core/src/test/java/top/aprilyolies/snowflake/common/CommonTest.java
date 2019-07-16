@@ -16,6 +16,7 @@ import top.aprilyolies.snowflake.idservice.support.IdModel;
 import top.aprilyolies.snowflake.idservice.support.TimeSupport;
 import top.aprilyolies.snowflake.idservice.support.idbuilder.SnowflakeIdBuilder;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
+import top.aprilyolies.snowflake.utils.PropertyUtils;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -311,5 +312,11 @@ public class CommonTest {
         } catch (SQLException e) {
             return dataSource;
         }
+    }
+
+    @Test
+    public void testGetSnowflakePropertyBean() {
+        SnowflakeProperties snowflakeProperties = PropertyUtils.loadPropertyBean(CommonTest.class.getClassLoader(), "snowflake.properties");
+        System.out.println(snowflakeProperties);
     }
 }

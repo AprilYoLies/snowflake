@@ -1,5 +1,7 @@
 package top.aprilyolies.snowflake.utils;
 
+import top.aprilyolies.snowflake.common.SnowflakeProperties;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -43,5 +45,25 @@ public class PropertyUtils {
     public static String loadProperty(ClassLoader classLoader, String path, String key) {
         Properties properties = loadProperty(classLoader, path);
         return (String) properties.get(key);
+    }
+
+    /**
+     * 将制定的配置文件解析为 SnowflakeProperties 实例
+     *
+     * @param classLoader 类加载器
+     * @param path        配置文件所在路径
+     * @return
+     */
+    public static SnowflakeProperties loadPropertyBean(ClassLoader classLoader, String path) {
+        Properties properties = loadProperty(classLoader, path);
+        SnowflakeProperties snowflakeProperties = new SnowflakeProperties();
+        snowflakeProperties.setDbUrl(properties.getProperty("snowflake.database.url"));
+        snowflakeProperties.setMachineId(properties.getProperty("snowflake.machine.id"));
+        snowflakeProperties.setMachineIdProvider(properties.getProperty("snowflake.machine.id.provider"));
+        snowflakeProperties.setIdType(properties.getProperty("snowflake.id.type"));
+        snowflakeProperties.setZkHost(properties.getProperty("snowflake.zookeeper.host"));
+        snowflakeProperties.setUsername(properties.getProperty("snowflake.database.username"));
+        snowflakeProperties.setPassword(properties.getProperty("snowflake.database.password"));
+        return snowflakeProperties;
     }
 }

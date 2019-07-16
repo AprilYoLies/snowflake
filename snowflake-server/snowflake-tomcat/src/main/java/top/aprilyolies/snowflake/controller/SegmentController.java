@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.aprilyolies.snowflake.SnowflakeProperties;
+import top.aprilyolies.snowflake.common.SnowflakeProperties;
 import top.aprilyolies.snowflake.idservice.IdService;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
 import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
@@ -64,15 +64,15 @@ public class SegmentController {
 
     // 根据配置信息构建 SnowflakeIdService 实例
     private IdService buildSnowflakeIdService() {
-        segIdServiceFactory.setServiceType("snowflake");
-        segIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
-        segIdServiceFactory.setMachineIdProvider(MachineIdProviderType.valueOf(snowflakeProperties.getMachineIdProvider()));
-        segIdServiceFactory.setUsername(snowflakeProperties.getUsername());
-        segIdServiceFactory.setPassword(snowflakeProperties.getPassword());
-        segIdServiceFactory.setZkHost(snowflakeProperties.getZkHost());
-        segIdServiceFactory.setIdType(snowflakeProperties.getIdType());
+        snowIdServiceFactory.setServiceType("snowflake");
+        snowIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
+        snowIdServiceFactory.setMachineIdProvider(MachineIdProviderType.valueOf(snowflakeProperties.getMachineIdProvider()));
+        snowIdServiceFactory.setUsername(snowflakeProperties.getUsername());
+        snowIdServiceFactory.setPassword(snowflakeProperties.getPassword());
+        snowIdServiceFactory.setZkHost(snowflakeProperties.getZkHost());
+        snowIdServiceFactory.setIdType(snowflakeProperties.getIdType());
         try {
-            return (IdService) segIdServiceFactory.getObject();
+            return (IdService) snowIdServiceFactory.getObject();
         } catch (Exception e) {
             e.printStackTrace();
             return null;

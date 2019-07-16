@@ -1,4 +1,4 @@
-package top.aprilyolies.snowflake;
+package top.aprilyolies.snowflake.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -7,6 +7,10 @@ import org.springframework.context.annotation.PropertySource;
  * @Author EvaJohnson
  * @Date 2019-07-16
  * @Email g863821569@gmail.com
+ */
+
+/**
+ * 用于封装 snowflake 的配置信息，可以通过 PropertyUtils#loadPropertyBean() 方法来进行构建
  */
 @PropertySource("snowflake.properties")
 public class SnowflakeProperties {

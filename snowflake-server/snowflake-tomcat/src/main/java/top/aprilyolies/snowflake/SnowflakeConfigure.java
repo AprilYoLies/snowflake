@@ -4,6 +4,7 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import top.aprilyolies.snowflake.common.SnowflakeProperties;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
 
 /**
