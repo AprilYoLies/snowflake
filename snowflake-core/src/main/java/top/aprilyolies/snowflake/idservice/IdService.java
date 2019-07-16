@@ -18,9 +18,10 @@ public interface IdService {
     String generateId();
 
     /**
-     * 生成 id 的方法
+     * 根据指定的 business 生成 id，目前只有 SegmentIdBuilder 适配此方法
      *
-     * @return 生成的唯一 id
+     * @param business 指定的业务名称
+     * @return
      */
     String generateId(String business);
 }

@@ -270,16 +270,13 @@ public class CommonTest {
     public void testSqlSessionMultiThread() {
         DataSource ds = buildDataSource();
         SqlSessionFactory factory = buildSessionFactory(ds, SegmentIdMapper.class);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    SqlSession sqlSession1 = factory.openSession();
-                    sqlSession1.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", 12);
-                    SegmentInfo segmentInfo = sqlSession1.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", "order");
-                    sqlSession1.commit();
-                    System.out.println(i);
-                }
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                SqlSession sqlSession1 = factory.openSession();
+                sqlSession1.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", 12);
+                SegmentInfo segmentInfo = sqlSession1.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", "order");
+                sqlSession1.commit();
+                System.out.println(i);
             }
         }).start();
         for (int i = 0; i < 10; i++) {

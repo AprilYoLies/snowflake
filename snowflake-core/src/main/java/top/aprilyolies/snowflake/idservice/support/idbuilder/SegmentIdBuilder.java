@@ -31,7 +31,7 @@ public class SegmentIdBuilder implements IdBuilder {
     // 下一个将要使用的 segment 的索引
     private int next = 1;
     // 步进值
-    private int step = 50;
+    private int step = 5000;
     // 用于后台更新 segment 的线程池
     private Executor executor = Executors.newCachedThreadPool(new SegmentTaskThreadFactory());
     // 记录 segment 加载的状态
@@ -56,38 +56,36 @@ public class SegmentIdBuilder implements IdBuilder {
 
     // 根据 business 从数据库中获取对应的数据记录
     public SegmentInfo getSegmentInfoFromDB(String business, int step) {
-        System.out.println(Thread.currentThread());
         SqlSession session = sessionFactory.openSession();
         session.update("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.updateSegmentTable", step);
         SegmentInfo segmentInfo = session.selectOne("top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper.getSegmentInfoFromDB", business);
         session.commit();
-//        session.close();    // 如果关闭会话，会导致死锁问题
-        System.out.println("finished");
+        session.close();    // 如果关闭会话，会导致线程阻塞
         return segmentInfo;
     }
 
     @Override
     public synchronized String buildId() {
-        if (initialized) {
-            Segment segment = segments[cur];
-            if (segment.initialized) {
-                if (!loading) {
-                    long used = segment.cur - segment.begin;
-                    if (step * 0.2 < used) {
-                        executor.execute(new LoadSegmentTask(next));
-                        loading = true;
+        if (initialized) {  // 判断 SegmentIdBuilder 是否初始化完成
+            Segment segment = segments[cur];    // 获取当前使用的 segment
+            if (segment.initialized) {  // 看当前 segment 是否初始化完成
+                if (!loading) { // 如果初始化完成的话，看另外一个 segment 是否是在加载中（避免重复提交加载任务）
+                    long used = segment.cur - segment.begin;    // 如果不是在加载中
+                    if (step * 0.2 < used) {    // 看当前 segment 是否使用超过了 20%
+                        executor.execute(new LoadSegmentTask(next));    // 超过了 20% 的话，就提交 segment 后台加载任务
+                        loading = true; // 设置 segment 正在加载的状态
                     }
                 }
-                return segment.getId();
-            } else {
+                return segment.getId(); // 从当前使用的 segment 中获取 id
+            } else {    // 执行到这里说明当前正在使用的 segment id 已经用光了
                 loading = false;
-                changeSegment();
-                segment = segments[cur];
-                if (segment.initialized) {
-                    waitSegmentLoaded();    // 防止被异常唤醒
+                changeSegment();    // 切换到备用的 segment
+                segment = segments[cur];    // 看备用的 segment 是否加载完毕
+                if (segment.initialized) {  // 如果加载完毕
+                    waitSegmentLoaded();    // 这里是为了防止加载任务提前完成，导致下一个 wait 操作提前释放
                     return segment.getId();
-                } else {
-                    waitSegmentLoaded();    // 等待任务完成
+                } else {    // 如果没有加载完毕
+                    waitSegmentLoaded();    // 等待加载任务完成
                     return segment.getId();
                 }
             }
@@ -118,8 +116,8 @@ public class SegmentIdBuilder implements IdBuilder {
             Segment segment = segments[idx];
             SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
             segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
-            loaded.release();
             segment.initialized = true;
+            loaded.release();
         }
     }
 
