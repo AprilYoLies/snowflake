@@ -35,6 +35,16 @@ public class SnowflakeProperties {
     @Value("${snowflake.database.password}")
     private String password;
 
+    @Value("${snowflake.service.type}")
+    private String serviceType;
+
+    public String getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
 
     public String getMachineId() {
         return machineId;

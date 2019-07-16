@@ -1,13 +1,12 @@
 package top.aprilyolies.snowflake;
 
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
-import top.aprilyolies.snowflake.common.SnowflakeProperties;
 import top.aprilyolies.snowflake.idservice.IdService;
 import top.aprilyolies.snowflake.idservice.IdServiceFactory;
-import top.aprilyolies.snowflake.idservice.support.MachineIdProviderType;
-import top.aprilyolies.snowflake.utils.PropertyUtils;
 
 import java.nio.charset.Charset;
 
@@ -24,19 +23,10 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  * @Email g863821569@gmail.com
  */
 public class SnowflakeChannelHandler extends ChannelInboundHandlerAdapter {
-    // 从配置文件中读取的配置信息
-    private static final SnowflakeProperties snowflakeProperties = PropertyUtils.
-            loadPropertyBean(SnowflakeChannelHandler.class.getClassLoader(), "snowflake.properties");
-    // SegmentIdService 服务类工厂
-    private static final IdServiceFactory segIdServiceFactory = new IdServiceFactory();
-    // SnowflakeIdService 服务类工厂
-    private static final IdServiceFactory snowIdServiceFactory = new IdServiceFactory();
     // SnowflakeIdService 实例
-    private static final IdService snowIdService = buildSnowflakeIdService();
+    private static final IdService snowIdService = IdServiceFactory.buildIdService(SnowflakeChannelHandler.class.getClassLoader(), "snowflake", "snowflake.properties");
     // SegmentIdService 实例
-    private static final IdService segIdService = buildSegmentIdService();
-    // snowflake 前缀
-    private static final String SNOWFLAKE_PREFIX = "/snowflake";
+    private static final IdService segIdService = IdServiceFactory.buildIdService(SnowflakeChannelHandler.class.getClassLoader(), "segment", "snowflake.properties");
     // snowflake service 的请求路径
     private static final String SNOWFLAKE_SERVICE_PATH = "/snowflake/snow";
     // segment service 的请求路径
@@ -59,9 +49,9 @@ public class SnowflakeChannelHandler extends ChannelInboundHandlerAdapter {
 
         StringBuffer sb = new StringBuffer();
 
-        if ("/snowflake/snow".equals(uri)) {
+        if (SNOWFLAKE_SERVICE_PATH.equals(uri)) {
             sb.append(snowIdService.generateId());
-        } else if (uri.startsWith("/snowflake/seg/")) {
+        } else if (uri.startsWith(SEGMENT_SERVICE_PATH)) {
             String business = uri.substring(len);
             sb.append(segIdService.generateId(business));
         } else {
@@ -82,37 +72,6 @@ public class SnowflakeChannelHandler extends ChannelInboundHandlerAdapter {
         } else {
             response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);  // 否则设置长连接头信息，将响应写回
             ctx.writeAndFlush(response);
-        }
-    }
-
-    // 根据配置信息构建 SegmentIdService 实例
-    private static IdService buildSegmentIdService() {
-        segIdServiceFactory.setServiceType("segment");
-        segIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
-        segIdServiceFactory.setUsername(snowflakeProperties.getUsername());
-        segIdServiceFactory.setPassword(snowflakeProperties.getPassword());
-        try {
-            return (IdService) segIdServiceFactory.getObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    // 根据配置信息构建 SnowflakeIdService 实例
-    private static IdService buildSnowflakeIdService() {
-        snowIdServiceFactory.setServiceType("snowflake");
-        snowIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
-        snowIdServiceFactory.setMachineIdProvider(MachineIdProviderType.valueOf(snowflakeProperties.getMachineIdProvider()));
-        snowIdServiceFactory.setUsername(snowflakeProperties.getUsername());
-        snowIdServiceFactory.setPassword(snowflakeProperties.getPassword());
-        snowIdServiceFactory.setZkHost(snowflakeProperties.getZkHost());
-        snowIdServiceFactory.setIdType(snowflakeProperties.getIdType());
-        try {
-            return (IdService) snowIdServiceFactory.getObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 }

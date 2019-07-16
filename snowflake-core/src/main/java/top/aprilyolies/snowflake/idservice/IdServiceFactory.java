@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.StringUtils;
+import top.aprilyolies.snowflake.common.SnowflakeProperties;
 import top.aprilyolies.snowflake.idservice.impl.SegmentIdService;
 import top.aprilyolies.snowflake.idservice.impl.SnowflakeIdService;
 import top.aprilyolies.snowflake.idservice.impl.support.SegmentIdMapper;
@@ -22,6 +23,7 @@ import top.aprilyolies.snowflake.machineid.dao.impl.MysqlMachineIdDaoImpl;
 import top.aprilyolies.snowflake.machineid.impl.MysqlMachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.PropertyMachineIdProvider;
 import top.aprilyolies.snowflake.machineid.impl.ZookeeperMachineIdProvider;
+import top.aprilyolies.snowflake.utils.PropertyUtils;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -123,6 +125,56 @@ public class IdServiceFactory implements FactoryBean {
         } catch (SQLException e) {
             logger.error("Can't initialize the datasource via dbUrl {} with username {} password {}", dbUrl, username, password);
             return dataSource;
+        }
+    }
+
+    public static IdService buildIdService(ClassLoader classLoader, String confPath) {
+        return buildIdService(classLoader, null, confPath);
+    }
+
+    public static IdService buildIdService(ClassLoader classLoader, String serviceType, String confPath) {
+        SnowflakeProperties snowflakeProperties = PropertyUtils.loadPropertyBean(classLoader, confPath);
+        IdServiceFactory factory = new IdServiceFactory();
+        if (serviceType == null || "".equals(serviceType.trim())) {
+            serviceType = snowflakeProperties.getServiceType();
+        }
+        if (SEGMENT_SERVICE.equals(serviceType)) {
+            return buildSegmentIdService(factory, snowflakeProperties);
+        } else if (SNOWFLAKE_SERVICE.equals(serviceType)) {
+            return buildSnowflakeIdService(factory, snowflakeProperties);
+        } else {
+            throw new IllegalArgumentException("Can't build id service for serviceType " + serviceType);
+        }
+    }
+
+    // 根据配置信息构建 SegmentIdService 实例
+    private static IdService buildSegmentIdService(IdServiceFactory segIdServiceFactory, SnowflakeProperties snowflakeProperties) {
+        segIdServiceFactory.setServiceType("segment");
+        segIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
+        segIdServiceFactory.setUsername(snowflakeProperties.getUsername());
+        segIdServiceFactory.setPassword(snowflakeProperties.getPassword());
+        try {
+            return (IdService) segIdServiceFactory.getObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // 根据配置信息构建 SnowflakeIdService 实例
+    private static IdService buildSnowflakeIdService(IdServiceFactory snowIdServiceFactory, SnowflakeProperties snowflakeProperties) {
+        snowIdServiceFactory.setServiceType("snowflake");
+        snowIdServiceFactory.setDbUrl(snowflakeProperties.getDbUrl());
+        snowIdServiceFactory.setMachineIdProvider(MachineIdProviderType.valueOf(snowflakeProperties.getMachineIdProvider()));
+        snowIdServiceFactory.setUsername(snowflakeProperties.getUsername());
+        snowIdServiceFactory.setPassword(snowflakeProperties.getPassword());
+        snowIdServiceFactory.setZkHost(snowflakeProperties.getZkHost());
+        snowIdServiceFactory.setIdType(snowflakeProperties.getIdType());
+        try {
+            return (IdService) snowIdServiceFactory.getObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
