@@ -37,7 +37,7 @@ public class SegmentIdBuilder implements IdBuilder {
     // 用于后台更新 segment 的线程池
     private Executor executor = Executors.newCachedThreadPool(new SegmentTaskThreadFactory());
     // 记录 segment 加载的状态
-    private boolean loading = false;
+    private volatile boolean loading = false;
 
     private Semaphore loaded = new Semaphore(0);
 
@@ -93,15 +93,14 @@ public class SegmentIdBuilder implements IdBuilder {
                 }
                 return segment.getId(); // 从当前使用的 segment 中获取 id
             } else {    // 执行到这里说明当前正在使用的 segment id 已经用光了
-                loading = false;
+                if (loading)
+                    waitSegmentLoaded();
                 changeSegment();    // 切换到备用的 segment
                 segment = segments[cur];    // 看备用的 segment 是否加载完毕
                 if (segment.initialized) {  // 如果加载完毕
-                    waitSegmentLoaded();    // 这里是为了防止加载任务提前完成，导致下一个 wait 操作提前释放
                     return segment.getId();
                 } else {    // 如果没有加载完毕
-                    waitSegmentLoaded();    // 等待加载任务完成
-                    return segment.getId();
+                    throw new IllegalStateException("Segment id builder hasn't been initialized");
                 }
             }
         } else {
@@ -132,6 +131,7 @@ public class SegmentIdBuilder implements IdBuilder {
             SegmentInfo segmentInfo = getSegmentInfoFromDB(business, step);
             segment.init(segmentInfo.getBegin(), segmentInfo.getEnd(), segmentInfo.getBusiness());
             segment.initialized = true;
+            loading = false;
             loaded.release();
         }
     }
