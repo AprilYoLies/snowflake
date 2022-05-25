@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.version>5.2.22.RELEASE</spring.version>
         <junit.version>4.12</junit.version>
         <mybatis.version>3.3.0</mybatis.version>
         <curator.version>2.6.0</curator.version>
